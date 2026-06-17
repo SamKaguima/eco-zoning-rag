@@ -1,7 +1,9 @@
 from qdrant_client import QdrantClient
 from openai import OpenAI
-from embed import get_embedding
+from src.embed import get_embedding
+from qdrant_client.models import VectorParams, Distance, PayloadSchemaType, PointStruct
 import os
+import hashlib
 
 
 def setup_collection(client: QdrantClient, name: str) -> None:
@@ -9,11 +11,11 @@ def setup_collection(client: QdrantClient, name: str) -> None:
     
     If the collection already exists, skip creation without raising an error.
     """
-    from qdrant_client.models import VectorParams, Distance
-    
     try:
         client.get_collection(name)
-    except Exception:
+    except Exception as e:
+        if "not found" not in str(e).lower():
+            raise
         client.create_collection(
             collection_name=name,
             vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
@@ -21,12 +23,12 @@ def setup_collection(client: QdrantClient, name: str) -> None:
         client.create_payload_index(
             collection_name=name,
             field_name="zone",
-            field_schema="keyword",
+            field_schema=PayloadSchemaType.KEYWORD,
         )
         client.create_payload_index(
             collection_name=name,
             field_name="topic",
-            field_schema="keyword",
+            field_schema=PayloadSchemaType.KEYWORD,
         )
 
 
@@ -50,10 +52,10 @@ def ingest_chunks(qdrant: QdrantClient, name: str, openai: OpenAI, chunks: list[
         vectors.append(embedding)
     
     points = []
-    for i, (chunk, vector) in enumerate(zip(chunks, vectors)):
-        from qdrant_client.models import PointStruct
+    for chunk, vector in zip(chunks, vectors):
+        chunk_id = int(hashlib.md5(f"{chunk['source']}{chunk['text']}".encode()).hexdigest(), 16) % (2**31)
         point = PointStruct(
-            id=i,
+            id=chunk_id,
             vector=vector,
             payload={
                 "text": chunk["text"],
@@ -75,7 +77,7 @@ def ingest_chunks(qdrant: QdrantClient, name: str, openai: OpenAI, chunks: list[
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
-    from prototype import FAKE_CHUNKS
+    from src.prototype import FAKE_CHUNKS
     
     # 1. Load .env
     load_dotenv()
