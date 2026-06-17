@@ -1,6 +1,6 @@
 from qdrant_client import QdrantClient
 from openai import OpenAI
-from src.embed import get_embedding
+from embed import get_embedding
 from qdrant_client.models import VectorParams, Distance, PayloadSchemaType, PointStruct
 import os
 import hashlib
