@@ -6,10 +6,11 @@ from qdrant_client import QdrantClient
 from embed import get_embedding
 from ingest import setup_collection, ingest_chunks
 from retrieve import retrieve
-from prototype import FAKE_CHUNKS
+from parse import parse_pdf
+from chunk import chunk
 from openai import OpenAI
 
-VALID_ZONES = {"downtown", "harbor", "midtown"}
+VALID_ZONES = {"A1", "A2", "RA", "RE40", "RE20", "RE15", "RE11", "RE9", "RS", "R1", "RU", "R2", "RD1.5", "RM1", "RMP", "CR", "C1", "C1.5", "C2", "C4", "C5", "CM", "MR1", "M1", "M2", "M3", "P", "PB", "OS", "GW", "PF"}
 
 if __name__ == "__main__":
     load_dotenv()
@@ -25,13 +26,19 @@ if __name__ == "__main__":
     # Initialize an in-memory Qdrant client if possible; fall back gracefully
     q_client = QdrantClient(":memory:")
 
-    # Create collection and ingest provided fake chunks (in-memory usage)
+    # Create chunks from pdf 
+    pdf_path = "data/raw/LA-zoning-regulations.pdf"
+    text = parse_pdf(pdf_path)
+    chunks = chunk(text)
+
+
+    # Create collection and ingest using chunks from pdf 
     collection_name = "eco_zoning"
     setup_collection(q_client, collection_name)
-    ingest_chunks(q_client, collection_name, openai_client, FAKE_CHUNKS)
+    ingest_chunks(q_client, collection_name, openai_client, chunks)
 
     # Prompt user for query and zone
-    zone = input("Zone (downtown/harbor/midtown): ").strip().lower()
+    zone = input("Enter zone code (e.g. R1, C2, A1): ").strip().upper()    
     if zone not in VALID_ZONES:
         print(f"Invalid zone: {zone}. Must be one of {', '.join(VALID_ZONES)}")
         sys.exit(1)
