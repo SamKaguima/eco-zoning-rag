@@ -44,5 +44,5 @@ def parse_query(query: str, client: OpenAI) -> ZoneFilter:
 if __name__ == "__main__":
     load_dotenv()
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    result = parse_query("what is the max height for R1 buildings?", client)
+    result = parse_query("what is the max height for R01w buildings?", client)
     print(result)

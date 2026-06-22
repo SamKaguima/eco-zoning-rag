@@ -10,6 +10,8 @@ from parse import parse_pdf
 from chunk import chunk
 from openai import OpenAI
 
+from query_parser import parse_query
+
 VALID_ZONES = {"A1", "A2", "RA", "RE40", "RE20", "RE15", "RE11", "RE9", "RS", "R1", "RU", "R2", "RD1.5", "RM1", "RMP", "CR", "C1", "C1.5", "C2", "C4", "C5", "CM", "MR1", "M1", "M2", "M3", "P", "PB", "OS", "GW", "PF"}
 
 if __name__ == "__main__":
@@ -38,15 +40,16 @@ if __name__ == "__main__":
     ingest_chunks(q_client, collection_name, openai_client, chunks)
 
     # Prompt user for query and zone
-    zone = input("Enter zone code (e.g. R1, C2, A1): ").strip().upper()    
-    if zone not in VALID_ZONES:
-        print(f"Invalid zone: {zone}. Must be one of {', '.join(VALID_ZONES)}")
-        sys.exit(1)
-
     query = input("Enter a query: ").strip()
     if not query:
         print("Empty query provided. Exiting.")
         sys.exit(0)
+
+    zone  = parse_query(query, openai_client).zone
+    if zone is None:
+        print("Could not identify a valid zone from your query. Please mention a zone code like R1, C2, or A1.")
+        sys.exit(0)
+
 
     # Call retrieve — try common argument orders to be tolerant to implementation
     hits = retrieve (query, zone, q_client, openai_client, collection_name)
