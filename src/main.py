@@ -11,6 +11,8 @@ from chunk import chunk
 from openai import OpenAI
 
 from query_parser import parse_query
+from generate import generate_response
+
 
 VALID_ZONES = {"A1", "A2", "RA", "RE40", "RE20", "RE15", "RE11", "RE9", "RS", "R1", "RU", "R2", "RD1.5", "RM1", "RMP", "CR", "C1", "C1.5", "C2", "C4", "C5", "CM", "MR1", "M1", "M2", "M3", "P", "PB", "OS", "GW", "PF"}
 
@@ -52,16 +54,18 @@ if __name__ == "__main__":
 
 
     # Call retrieve — try common argument orders to be tolerant to implementation
-    hits = retrieve (query, zone, q_client, openai_client, collection_name)
-
+    hits = retrieve (query, zone, q_client, openai_client, collection_name, top_k=20)
 
     # Display results (tolerant to multiple hit formats)
     if not hits:
         print("No results returned.")
         sys.exit(0)
+    
 
-    print("\nResults:\n")
-    for i, h in enumerate(hits, start=1):
-        print(f"{i}. Topic: {h['topic']} | Score: {h['score']: .4f}")
-        print(f" Text: {h['text']}\n")
-        
+    """    print(f"Retrieved {len(hits)} chunks")
+        for h in hits:
+            print(f"score: {h['score']:.4f} | {h['text'][:100]}")"""
+
+
+    response = generate_response(query, hits, openai_client)
+    print("Response:\n", response)

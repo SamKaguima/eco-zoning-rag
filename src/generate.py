@@ -12,12 +12,13 @@ def generate_response(query: str, chunks: list[dict], client: OpenAI) -> str:
     system_prompt = (
         "You are an expert zoning consultant for Los Angeles. "
         "Answer the user's question using ONLY the zoning regulations provided below. "
+        "The regulations may be extracted from tables and appear fragmented — interpret them carefully. "
+        "For height questions, look for values like '28 ft', '33 ft', or 'Roof ≥25%' patterns. "
         "If the answer cannot be found in the provided text, say 'I cannot find that "
         "information in the available zoning documents.' Do not use any outside knowledge."
     )
-
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},
