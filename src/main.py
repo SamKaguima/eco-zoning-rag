@@ -3,9 +3,10 @@ import sys
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 
+from rank_bm25 import BM25Okapi
 from embed import get_embedding
 from ingest import setup_collection, ingest_chunks
-from retrieve import retrieve
+from hybrid_retrieve import hybrid_retrieve
 from parse import parse_pdf
 from chunk import chunk
 from openai import OpenAI
@@ -30,16 +31,17 @@ if __name__ == "__main__":
     # Initialize an in-memory Qdrant client if possible; fall back gracefully
     q_client = QdrantClient(":memory:")
 
-    # Create chunks from pdf 
+    # Create chunks from pdf
     pdf_path = "data/raw/LA-zoning-regulations.pdf"
     text = parse_pdf(pdf_path)
     chunks = chunk(text)
 
-
-    # Create collection and ingest using chunks from pdf 
+    # Create collection and ingest using chunks from pdf
     collection_name = "eco_zoning"
     setup_collection(q_client, collection_name)
     ingest_chunks(q_client, collection_name, openai_client, chunks)
+
+    bm25_index = BM25Okapi([c["text"].split() for c in chunks])
 
     # Prompt user for query and zone
     query = input("Enter a query: ").strip()
@@ -53,8 +55,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
 
-    # Call retrieve — try common argument orders to be tolerant to implementation
-    hits = retrieve (query, zone, q_client, openai_client, collection_name, top_k=20)
+    hits = hybrid_retrieve(query, zone, q_client, openai_client, collection_name, bm25_index, chunks, top_k=20)
 
     # Display results (tolerant to multiple hit formats)
     if not hits:
