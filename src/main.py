@@ -1,5 +1,6 @@
 import os
 import sys
+import cohere
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 
@@ -7,6 +8,7 @@ from rank_bm25 import BM25Okapi
 from embed import get_embedding
 from ingest import setup_collection, ingest_chunks
 from hybrid_retrieve import hybrid_retrieve
+from rerank import rerank
 from parse import parse_pdf
 from chunk import chunk
 from openai import OpenAI
@@ -21,6 +23,7 @@ if __name__ == "__main__":
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
     openai_client = OpenAI(api_key=api_key)
+    cohere_client = cohere.ClientV2(api_key=os.getenv("COHERE_API_KEY"))
     if not api_key:
         print("OPENAI_API_KEY not set in environment. Please add it to .env")
         sys.exit(1)
@@ -63,10 +66,8 @@ if __name__ == "__main__":
         sys.exit(0)
     
 
-    """    print(f"Retrieved {len(hits)} chunks")
-        for h in hits:
-            print(f"score: {h['score']:.4f} | {h['text'][:100]}")"""
 
+    reranked_hits = rerank(query, hits, cohere_client, top_n=5)
 
-    response = generate_response(query, hits, openai_client)
+    response = generate_response(query, reranked_hits, openai_client)
     print("Response:\n", response)
