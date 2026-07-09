@@ -24,8 +24,8 @@ async def on_chat_start():
     cohere_client = cohere.ClientV2(api_key=os.getenv("COHERE_API_KEY"))
 
     pdf_path = "data/raw/LA-zoning-regulations.pdf"
-    text = parse_pdf(pdf_path)
-    chunks = chunk(text)
+    blocks = parse_pdf(pdf_path)
+    chunks = chunk(blocks, source=os.path.basename(pdf_path))
     
     setup_collection(qdrant_client, COLLECTION_NAME)
     ingest_chunks(qdrant_client, COLLECTION_NAME, openai_client, chunks)

@@ -36,8 +36,8 @@ if __name__ == "__main__":
 
     # Create chunks from pdf
     pdf_path = "data/raw/LA-zoning-regulations.pdf"
-    text = parse_pdf(pdf_path)
-    chunks = chunk(text)
+    blocks = parse_pdf(pdf_path)
+    chunks = chunk(blocks, source=os.path.basename(pdf_path))
 
     # Create collection and ingest using chunks from pdf
     collection_name = "eco_zoning"

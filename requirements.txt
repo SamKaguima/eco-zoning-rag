@@ -116,8 +116,12 @@ opentelemetry-semantic-conventions-ai==0.5.1
 opentelemetry-util-http==0.64b0
 orjson==3.11.9
 packaging==26.2
+pdfminer.six==20260107
+pdfplumber==0.11.10
+pillow==12.3.0
 pluggy==1.6.0
 portalocker==3.2.0
+pre-commit==4.6.0
 propcache==0.5.2
 protobuf==7.35.1
 pycparser==3.0
@@ -127,12 +131,13 @@ pydantic_core==2.46.4
 Pygments==2.20.0
 PyJWT==2.13.0
 pymupdf==1.28.0
+pypdfium2==5.11.0
 pytest==9.1.1
 python-dotenv==1.2.2
 python-engineio==4.13.3
 python-multipart==0.0.32
 python-socketio==5.16.3
-pywin32==312
+pywin32==312; sys_platform == "win32"
 PyYAML==6.0.3
 qdrant-client==1.18.0
 rank-bm25==0.2.2

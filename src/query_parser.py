@@ -23,6 +23,7 @@ def parse_query(query: str, client: OpenAI) -> ZoneFilter:
     
     result = instructor_client.chat.completions.create(
         model="gpt-4o",
+        temperature=0,
         response_model=ZoneFilter,
         messages=[
             {
@@ -35,9 +36,9 @@ def parse_query(query: str, client: OpenAI) -> ZoneFilter:
             }
         ]
     )
-    
-    if result.zone not in VALID_ZONES:
-        result.zone = None
+
+    normalized_zone = result.zone.strip().upper() if result.zone else None
+    result.zone = normalized_zone if normalized_zone in VALID_ZONES else None
         
     return result
 

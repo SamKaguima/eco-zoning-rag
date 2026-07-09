@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".venv/Scripts/python.exe .claude/hooks/check_tests_before_git.py",
+            "timeout": 120,
+            "statusMessage": "Running tests before git commit/push..."
+          }
+        ]
+      }
+    ]
+  }
+}
